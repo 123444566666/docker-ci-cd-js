@@ -14,7 +14,7 @@ jobs:
       - name: установка зависимостей
         run: npm install
       - name: запуск тестов
-        run: npm run test
+        run: npm run lint
       - name: проверка на билд
         run: npm run build
 

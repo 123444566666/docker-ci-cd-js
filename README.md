@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Application with Docker & GitHub Actions CI/CD
 
-## Getting Started
+Учебный репозиторий (DevOps Sandbox) для настройки процессов контейнеризации и автоматического развертывания веб-приложения на базе фреймворка **Next.js**.
 
-First, run the development server:
+## 🛠 Технологический стек
+
+- **Frontend:** Next.js (с поддержкой TypeScript/Turbopack)
+- **Контейнеризация:** Docker (Multi-stage сборка), Docker Compose
+- **CI/CD:** GitHub Actions, GitHub Container Registry (GHCR)
+
+---
+
+## 🐳 Локальная разработка (Docker Compose)
+
+Для локального запуска приложения в режиме разработки (`development`) используется Docker Compose с монтированием папок (`Volumes`). Это позволяет редактировать код на хост-машине и видеть изменения в браузере без постоянной пересборки образа (Hot Reload).
+
+### Быстрый старт:
+
+1. Клонируйте репозиторий.
+2. Запустите оркестратор одной командой (передав нужную версию):
+   ```bash
+   VERSION=название версии docker compose up --build
+   ```
+3. Откройте в браузере: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🏗 Архитектура Dockerfile (Multi-Stage)
+
+Файл `Dockerfile` оптимизирован с использованием многоэтапной сборки для разделения окружений:
+
+- **Stage 1 (base):** Загрузка базового образа (`node:22-slim`) и кэширование зависимостей (`package.json`).
+- **Stage 2 (development):** Используется локально через Docker Compose. Запускает `npm run dev`.
+- **Stage 3 (production):** Используется для продакшена. Запускает оптимизированную сборку `npm run build` и стартует сервер через `npm start`. В финальный образ «запекается» только готовый скомпилированный код.
+
+### Ручной запуск продакшен-версии:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Собрать прод-образ
+docker build --target prod -t next-app:ver1 .
+
+# 2. Запустить контейнер в фоне без монтирования папок
+docker run -d -p 3000:3000 --name next-prod-app next:ver1
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 CI/CD Пайплайн (GitHub Actions)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+В проекте настроен автоматический пайплайн, конфигурация которого описана в `.github/workflows/deploy.yml`. Он состоит из двух связанных этапов (Jobs):
 
-## Learn More
+1. **Job `check` (CI):**
+   - Срабатывает при любом `push` или `pull_request`.
+   - Разворачивает чистое окружение на базе Ubuntu, скачивает код и устанавливает зависимости.
+   - Проверяет проект на ошибки компиляции (`npm run build`) и запускает тесты (`npm run test`).
 
-To learn more about Next.js, take a look at the following resources:
+2. **Job `publish` (CD):**
+   - Запускается автоматически только после успешного прохождения шага `check` и только для ветки `main`.
+   - Авторизуется в реестре **GitHub Container Registry (GHCR)**, используя встроенный токен `${{ secrets.GITHUB_TOKEN }}`.
+   - Собирает изолированный продакшен-образ и отправляет его в пакеты вашего репозитория (`ghcr.io`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Готовый образ доступен в правой колонке вашего GitHub-репозитория в разделе **Packages**.

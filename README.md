@@ -40,7 +40,18 @@
 docker build --target prod -t next-app:ver1 .
 
 # 2. Запустить контейнер в фоне без монтирования папок
-docker run -d -p 3000:3000 --name next-prod-app next:ver1
+docker run -d -p 3000:3000 --name next-prod-app next-app:ver1
+```
+
+### Запуск готового образа
+
+```bash
+# 1. Скачать готовый образ из GHCR
+docker pull ghcr.io/1234445666666/docker-ci-cd-js:latest
+
+# 2. Запустить
+docker run -d -p 3000:3000 --name next-prod-app ghcr.io/1234445666666/docker-ci-cd-js:latest
+
 ```
 
 ---

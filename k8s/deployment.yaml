@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: next-app
 spec:
-  replicas: 6
+  replicas: 0
   selector:
     matchLabels:
       app: next-app
@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: next-app
-          image: ghcr.io/1234445666666/docker-ci-cd-js:latest
+          image: ghcr.io/123444566666/docker-ci-cd-js:2.0
           ports:
             - containerPort: 3000

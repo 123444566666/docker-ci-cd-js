@@ -9,8 +9,6 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=dev
   prometheus:
     image: prom/prometheus:latest
     volumes:

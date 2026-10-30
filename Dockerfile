@@ -1,32 +1,26 @@
 # базовые настройки
 FROM node:22-slim AS base
-
-RUN npm install -g npm@11
-
 WORKDIR /app
-
 COPY package.json package-lock.json* ./
-
 RUN npm ci
 
 # для разработки
 FROM base AS dev
-
 COPY . .
-
 EXPOSE 3000
-
 CMD ["npm", "run", "dev"]
 
-# для прода
-FROM base AS prod
+# сборка 
+FROM base AS build
+COPY . .
+RUN npm run build
 
-COPY --chown=node:node . .
-
-RUN npm run build && chown -R node:node /app
-
-EXPOSE 3000
-
+# для прода: чистый образ без npm
+FROM node:22-slim AS prod
+WORKDIR /app
+ENV NODE_ENV=production
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+COPY --from=build --chown=node:node /app /app
 USER node
-
-CMD ["npm", "start"]
+EXPOSE 3000
+CMD ["node", "node_modules/next/dist/bin/next", "start"]

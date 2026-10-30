@@ -67,7 +67,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Сканирование Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@<тег-из-releases>
         with:
           image-ref: scan-target:local
           severity: CRITICAL,HIGH

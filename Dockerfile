@@ -1,5 +1,5 @@
 # базовые настройки
-FROM node:22-slim AS base
+FROM node:25-slim AS base
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # для прода: чистый образ без npm
-FROM node:22-slim AS prod
+FROM node:25-slim AS prod
 WORKDIR /app
 ENV NODE_ENV=production
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx

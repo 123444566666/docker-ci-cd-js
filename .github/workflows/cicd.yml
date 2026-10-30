@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Проверка Dockerfile (hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -31,7 +37,6 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
 
       - name: Вход в GHCR
@@ -51,7 +56,25 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
 
-      - name: Собрать и опубликовать образ
+      - name: Сборка образа для сканирования
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: prod
+          load: true
+          tags: scan-target:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Сканирование Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: scan-target:local
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+
+      - name: Публикация образа
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -60,4 +83,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max

@@ -57,7 +57,7 @@ jobs:
             type=sha
 
       - name: Сборка образа для сканирования
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: prod
@@ -75,7 +75,7 @@ jobs:
           exit-code: 1
 
       - name: Публикация образа
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: prod

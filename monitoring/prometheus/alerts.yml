@@ -1,0 +1,18 @@
+groups:
+  - name: next-app
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(app_http_requests_total{status="500"}[1m])) / sum(rate(app_http_requests_total[1m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Доля ошибок больше 10% уже 2 минуты"
+
+      - alert: AppDown
+        expr: up{job="next-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus не может забрать метрики с next-app"
